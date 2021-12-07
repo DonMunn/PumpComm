@@ -12,6 +12,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         pumpcomm.cpp \
+        serialcomm.cpp \
         settingsdialog.cpp
 
 # Default rules for deployment.
@@ -22,6 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     mainwindow.h \
     pumpcomm.h \
+    serialcomm.h \
     settingsdialog.h
 
 FORMS += \

@@ -1,10 +1,7 @@
 #include "pumpcomm.h"
 
-PumpComm::PumpComm() {
-    connect(serial_conn, &QSerialPort::errorOccurred, this, &PumpComm::collectErrorData);
-    connect(serial_conn, &QSerialPort::readyRead, this, &PumpComm::serialConnReceiveMessage);
-    connect(timer, &QTimer::timeout, this, &PumpComm::timeout);
-    timer->setSingleShot(true);
+PumpComm::PumpComm(QObject *parent) : SerialComm(parent) {
+    connect(&serial_conn, &QSerialPort::readyRead, this, &PumpComm::serialConnReceiveMessage);
 }
 
 void PumpComm::setTubeDia(double diameter) {
@@ -91,48 +88,9 @@ void PumpComm::setDispense() {
     }
 }
 
-void PumpComm::openSerialPort() {
-    if (serial_conn->open(QIODevice::ReadWrite)) {
-        QString successMessage = QString("Connected to %1 : %2, %3, %4, %5, %6")
-                .arg(serial_conn->portName()).arg(serial_conn->baudRate())
-                .arg(serial_conn->dataBits()).arg(serial_conn->parity())
-                .arg(serial_conn->stopBits()).arg(serial_conn->flowControl());
-        qDebug() << successMessage;
-    }
-}
-
-void PumpComm::closeSerialPort() {
-    // Reset data related vars
-    command_queue.clear();
-    data_queue.clear();
-    temp_data = "";
-    timer->stop();
-
-    if (isOpen()) {
-        serial_conn->clear();
-        serial_conn->close();
-        qDebug() << "Disconnected";
-    } else {
-        qDebug() << "No open connection";
-    }
-}
-
-bool PumpComm::isOpen() {
-    return serial_conn->isOpen();
-}
-
-void PumpComm::updateSerialInfo(const SettingsDialog::Settings &settings) {
-    serial_conn->setPortName(settings.name);
-    serial_conn->setBaudRate(settings.baudRate);
-    serial_conn->setDataBits(settings.dataBits);
-    serial_conn->setParity(settings.parity);
-    serial_conn->setStopBits(settings.stopBits);
-    serial_conn->setFlowControl(settings.flowControl);
-}
-
 //Private
 void PumpComm::serialConnSendMessage() {
-    commands command = command_queue.head();
+    commands command = (commands)command_queue.head();
     QByteArray data = getCommand(command).toUtf8();
 
     if (command == SETTUBEDIAMETER) {
@@ -145,14 +103,14 @@ void PumpComm::serialConnSendMessage() {
 
     qDebug() << "final data:" << data;
 
-    if (serial_conn->write(data) == -1) { // -1 indicates error occurred
+    if (serial_conn.write(data) == -1) { // -1 indicates error occurred
         // send QSerialPort::NotOpenError if QOIDevice::NotOpen is triggered
-        if (serial_conn->error() == QSerialPort::NoError) {
+        if (serial_conn.error() == QSerialPort::NoError) {
             sendError(QSerialPort::NotOpenError, "No open connection");
         } //else UNNEEDED as the QSerialPort will emit its own signal for other errors
     } else {
         emit rawDataSignal(data);
-        timer->start(1000);
+        timer.start(1000);
     }
 }
 
@@ -178,14 +136,14 @@ QString PumpComm::getCommand(commands command) {
 void PumpComm::sendError(QSerialPort::SerialPortError error, const QString &error_message) {
     // clear serial internal read/write buffers
     if (isOpen()) {
-        serial_conn->clear();
+        serial_conn.clear();
     }
 
     // Dequeue command if one is associated with the error
     if (command_queue.isEmpty()) {
         emit errorSignal(error, error_message, commands::NONE);
     } else {
-        commands command = command_queue.dequeue();
+        commands command = (commands)command_queue.dequeue();
         if (command == SETTUBEDIAMETER || command == SETDISPENSERATE || command == SETDISPENSEVOLUME)
             data_queue.dequeue();
 
@@ -197,12 +155,12 @@ void PumpComm::sendError(QSerialPort::SerialPortError error, const QString &erro
 //Slots
 void PumpComm::serialConnReceiveMessage() {
     // construct message from parts
-    temp_data += serial_conn->readAll();
+    temp_data += serial_conn.readAll();
 
     QRegExp re = QRegExp("^\\s*(\\d*\\.\\d*) ml\\/min\\s{2}$");
     if(QRegExp("^\\*$").exactMatch(temp_data) || re.exactMatch(temp_data)) {
-        timer->stop();
-        commands command = command_queue.dequeue();
+        timer.stop();
+        commands command = (commands)command_queue.dequeue();
 
         if (command == SETTUBEDIAMETER || command == SETDISPENSERATE || command == SETDISPENSEVOLUME)
             data_queue.dequeue();
@@ -220,19 +178,3 @@ void PumpComm::serialConnReceiveMessage() {
         sendError(QSerialPort::UnsupportedOperationError, "Incorrect command sent");
     }
 }
-
-void PumpComm::collectErrorData(QSerialPort::SerialPortError error) {
-    //clearError causes another NoError signal to be sent
-    if (error != QSerialPort::NoError) {
-        sendError(error, serial_conn->errorString());
-        serial_conn->clearError();
-    }
-}
-
-void PumpComm::timeout() {
-    if (temp_data != "") {
-        qDebug() << temp_data;
-        sendError(QSerialPort::TimeoutError, "Timeout partial data");
-    }
-}
-

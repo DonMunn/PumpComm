@@ -126,7 +126,7 @@ void MainWindow::displayRawData(QString data)
     m_ui->plainTextEdit->appendPlainText(data);
 }
 
-void MainWindow::handleError(QSerialPort::SerialPortError error, QString error_string, PumpComm::commands command_sent)
+void MainWindow::handleError(QSerialPort::SerialPortError error, QString error_string, int command_sent)
 {
     if (error == QSerialPort::ResourceError) {
         QMessageBox::critical(this, tr("Critical Error"), error_string);
@@ -156,7 +156,7 @@ void MainWindow::showStatusMessage(const QString &message)
     m_status->setText(message);
 }
 
-void MainWindow::displayData(QString data, PumpComm::commands command_sent) {
+void MainWindow::displayData(QString data, int command_sent) {
     m_ui->plainTextEdit->appendPlainText(data);
     if (command_sent == PumpComm::GETDISPENSERATE) m_ui->lcdNumberDispRate->display(data+" ml/min");
 }

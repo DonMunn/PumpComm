@@ -85,7 +85,7 @@ private slots:
     void about();
     //void writeData(const QByteArray &data);
     void displayRawData(QString data);
-    void handleError(QSerialPort::SerialPortError error, QString error_string, PumpComm::commands command_sent);
+    void handleError(QSerialPort::SerialPortError error, QString error_string, int command_sent);
 
     void on_pushButtonSetDia_clicked();
     void on_pushButtonSetDispRate_clicked();
@@ -95,7 +95,7 @@ private slots:
     void on_pushButtonDispense_clicked();
     void on_actionAbout_triggered();
 
-    void displayData(QString data, PumpComm::commands command_sent);
+    void displayData(QString data, int command_sent);
 
 private:
     void initActionsConnections();
