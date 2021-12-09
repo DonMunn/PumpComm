@@ -8,10 +8,10 @@ void PumpComm::setTubeDia(double diameter) {
     if (isOpen()) {
         if(!command_queue.isEmpty()) {
             command_queue.enqueue(SETTUBEDIAMETER);
-            data_queue.enqueue(diameter*100.0);
+            data_queue.enqueue(QString::number((int)(diameter*100.0)));
         } else {
             command_queue.enqueue(SETTUBEDIAMETER);
-            data_queue.enqueue(diameter*100.0);
+            data_queue.enqueue(QString::number((int)(diameter*100.0)));
             serialConnSendMessage();
         }
     } else {
@@ -49,10 +49,10 @@ void PumpComm::setDispRate(double disp_rate_p) {
     if (isOpen()) {
         if(!command_queue.isEmpty()) {
             command_queue.enqueue(SETDISPENSERATE);
-            data_queue.enqueue(disp_rate_p * 10.0);
+            data_queue.enqueue(QString::number((int)(disp_rate_p * 10.0)));
         } else {
             command_queue.enqueue(SETDISPENSERATE);
-            data_queue.enqueue(disp_rate_p * 10.0);
+            data_queue.enqueue(QString::number((int)(disp_rate_p * 10.0)));
             serialConnSendMessage();
         }
     } else {
@@ -64,10 +64,10 @@ void PumpComm::setDispVol(double volume) {
     if (isOpen()) {
         if(!command_queue.isEmpty()) {
             command_queue.enqueue(SETDISPENSEVOLUME);
-            data_queue.enqueue(volume * 100.0);
+            data_queue.enqueue(QString::number((int)(volume * 100.0)));
         } else {
             command_queue.enqueue(SETDISPENSEVOLUME);
-            data_queue.enqueue(volume * 100.0);
+            data_queue.enqueue(QString::number((int)(volume * 100.0)));
             serialConnSendMessage();
         }
     } else {
@@ -94,9 +94,9 @@ void PumpComm::serialConnSendMessage() {
     QByteArray data = getCommand(command).toUtf8();
 
     if (command == SETTUBEDIAMETER) {
-        data += QString::number(data_queue.head()).rightJustified(4, '0').toUtf8();
+        data += data_queue.head().rightJustified(4, '0').toUtf8();
     } else if (command == SETDISPENSEVOLUME | command == SETDISPENSERATE) {
-        data += QString::number(data_queue.head()).rightJustified(5, '0').toUtf8();
+        data += data_queue.head().rightJustified(5, '0').toUtf8();
     }
 
     data += '\r';
