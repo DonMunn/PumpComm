@@ -21,15 +21,14 @@ public:
 
     void setDispense(); // Done
 
-protected:
+private:
     void sendError(QSerialPort::SerialPortError error, const QString &error_message) override; // Done
     void serialConnSendMessage() override; // Done
-
-private:
     QString getCommand(commands command); // Done
 
 private slots:
     void serialConnReceiveMessage() override;
+    void sendMessage() override;
 
 };
 

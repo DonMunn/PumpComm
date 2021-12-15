@@ -2,18 +2,13 @@
 
 PumpComm::PumpComm(QObject *parent) : SerialComm(parent) {
     connect(&serial_conn, &QSerialPort::readyRead, this, &PumpComm::serialConnReceiveMessage);
+    connect(&send_message_timer, &QTimer::timeout, this, &PumpComm::sendMessage);
 }
 
 void PumpComm::setTubeDia(double diameter) {
     if (isOpen()) {
-        if(!command_queue.isEmpty()) {
-            command_queue.enqueue(SETTUBEDIAMETER);
-            data_queue.enqueue(QString::number((int)(diameter*100.0)));
-        } else {
-            command_queue.enqueue(SETTUBEDIAMETER);
-            data_queue.enqueue(QString::number((int)(diameter*100.0)));
-            serialConnSendMessage();
-        }
+        command_queue.enqueue(SETTUBEDIAMETER);
+        data_queue.enqueue(QString::number((int)(diameter*100.0)));
     } else {
         sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -21,12 +16,7 @@ void PumpComm::setTubeDia(double diameter) {
 
 void PumpComm::setDispMode() {
     if (isOpen()) {
-    if(!command_queue.isEmpty()) {
         command_queue.enqueue(SETDISPENSEMODE);
-    } else {
-        command_queue.enqueue(SETDISPENSEMODE);
-        serialConnSendMessage();
-    }
     } else {
         sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -34,12 +24,7 @@ void PumpComm::setDispMode() {
 
 void PumpComm::getCalDispRate() {
     if (isOpen()) {
-        if(!command_queue.isEmpty()) {
-            command_queue.enqueue(GETDISPENSERATE);
-        } else {
-            command_queue.enqueue(GETDISPENSERATE);
-            serialConnSendMessage();
-        }
+        command_queue.enqueue(GETDISPENSERATE);
     } else {
         sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -47,14 +32,8 @@ void PumpComm::getCalDispRate() {
 
 void PumpComm::setDispRate(double disp_rate_p) {
     if (isOpen()) {
-        if(!command_queue.isEmpty()) {
-            command_queue.enqueue(SETDISPENSERATE);
-            data_queue.enqueue(QString::number((int)(disp_rate_p * 10.0)));
-        } else {
-            command_queue.enqueue(SETDISPENSERATE);
-            data_queue.enqueue(QString::number((int)(disp_rate_p * 10.0)));
-            serialConnSendMessage();
-        }
+        command_queue.enqueue(SETDISPENSERATE);
+        data_queue.enqueue(QString::number((int)(disp_rate_p * 10.0)));
     } else {
        sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -62,14 +41,8 @@ void PumpComm::setDispRate(double disp_rate_p) {
 
 void PumpComm::setDispVol(double volume) {
     if (isOpen()) {
-        if(!command_queue.isEmpty()) {
-            command_queue.enqueue(SETDISPENSEVOLUME);
-            data_queue.enqueue(QString::number((int)(volume * 100.0)));
-        } else {
-            command_queue.enqueue(SETDISPENSEVOLUME);
-            data_queue.enqueue(QString::number((int)(volume * 100.0)));
-            serialConnSendMessage();
-        }
+        command_queue.enqueue(SETDISPENSEVOLUME);
+        data_queue.enqueue(QString::number((int)(volume * 100.0)));
     } else {
        sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -77,12 +50,7 @@ void PumpComm::setDispVol(double volume) {
 
 void PumpComm::setDispense() {
     if (isOpen()) {
-        if(!command_queue.isEmpty()) {
-            command_queue.enqueue(SETDISPENSE);
-        } else {
-            command_queue.enqueue(SETDISPENSE);
-            serialConnSendMessage();
-        }
+        command_queue.enqueue(SETDISPENSE);
     } else {
         sendError(QSerialPort::NotOpenError, "No open connection");
     }
@@ -110,7 +78,7 @@ void PumpComm::serialConnSendMessage() {
         } //else UNNEEDED as the QSerialPort will emit its own signal for other errors
     } else {
         emit rawDataSignal(data);
-        timer.start(1000);
+        timeout_timer.start(1000);
     }
 }
 
@@ -134,6 +102,8 @@ QString PumpComm::getCommand(commands command) {
 }
 
 void PumpComm::sendError(QSerialPort::SerialPortError error, const QString &error_message) {
+    send_message_timer.stop();
+
     // clear serial internal read/write buffers
     if (isOpen()) {
         serial_conn.clear();
@@ -159,7 +129,7 @@ void PumpComm::serialConnReceiveMessage() {
 
     QRegExp re = QRegExp("^\\s*(\\d*\\.\\d*) ml\\/min\\s{2}$");
     if(QRegExp("^\\*$").exactMatch(temp_data) || re.exactMatch(temp_data)) {
-        timer.stop();
+        timeout_timer.stop();
         commands command = (commands)command_queue.dequeue();
 
         if (command == SETTUBEDIAMETER || command == SETDISPENSERATE || command == SETDISPENSEVOLUME)
@@ -170,11 +140,13 @@ void PumpComm::serialConnReceiveMessage() {
         emit returnData(temp_data, command);
 
         temp_data = "";
-        // send another message when previous is finished
-        if (!command_queue.isEmpty()) {
-            serialConnSendMessage();
-        }
     } else if (QRegExp("^#$").exactMatch(temp_data)) {
         sendError(QSerialPort::UnsupportedOperationError, "Incorrect command sent");
+    }
+}
+
+void PumpComm::sendMessage() {
+    if (isOpen() && !command_queue.isEmpty() && !timeout_timer.isActive()) {
+        serialConnSendMessage();
     }
 }

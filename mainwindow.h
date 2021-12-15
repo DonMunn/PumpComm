@@ -93,6 +93,7 @@ private slots:
     void on_pushButtonSetDispMode_clicked();
     void on_pushButtonReadDispRate_clicked();
     void on_pushButtonDispense_clicked();
+    void on_pushButtonStartMessageTimer_clicked();
     void on_actionAbout_triggered();
 
     void displayData(QString data, int command_sent);

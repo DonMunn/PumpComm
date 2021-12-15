@@ -185,6 +185,10 @@ void MainWindow::on_pushButtonDispense_clicked() {
     o_serial->setDispense();
 }
 
+void MainWindow::on_pushButtonStartMessageTimer_clicked() {
+    o_serial->startSendMessageTimer();
+}
+
 void MainWindow::on_actionAbout_triggered()
 {
     about();
