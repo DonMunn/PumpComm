@@ -9,7 +9,8 @@ class PumpComm : public SerialComm
 {
     Q_OBJECT
 public:
-    enum commands {NONE, SETTUBEDIAMETER, SETDISPENSEMODE, GETDISPENSERATE, SETDISPENSERATE, SETDISPENSEVOLUME, SETDISPENSE};
+    enum commands {NONE, SETTUBEDIAMETER, SETDISPENSEMODE, GETDISPENSERATE, SETDISPENSERATE,
+                   SETDISPENSEVOLUME, SETROTATIONCLOCKWISE, SETROTATIONCOUNTERCLOCKWISE, SETDISPENSE};
 
     explicit PumpComm(QObject *parent = nullptr);
 
@@ -18,6 +19,8 @@ public:
     void getCalDispRate(); // Done
     void setDispRate(double disp_rate_p); // Done
     void setDispVol(double volume); // Done
+    void setRotationClockwise(); // Done
+    void setRotationCounterClockwise(); // Done
 
     void setDispense(); // Done
 
