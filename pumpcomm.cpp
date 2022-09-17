@@ -56,6 +56,22 @@ void PumpComm::setDispense() {
     }
 }
 
+void PumpComm::setRotationClockwise() {
+    if (isOpen()) {
+        command_queue.enqueue(SETROTATIONCLOCKWISE);
+    } else {
+        sendError(QSerialPort::NotOpenError, "No open connection");
+    }
+}
+
+void PumpComm::setRotationCounterClockwise() {
+    if (isOpen()) {
+        command_queue.enqueue(SETROTATIONCOUNTERCLOCKWISE);
+    } else {
+        sendError(QSerialPort::NotOpenError, "No open connection");
+    }
+}
+
 //Private
 void PumpComm::serialConnSendMessage() {
     commands command = (commands)command_queue.head();
