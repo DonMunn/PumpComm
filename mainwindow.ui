@@ -20,7 +20,7 @@
       <x>9</x>
       <y>9</y>
       <width>671</width>
-      <height>261</height>
+      <height>275</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -47,6 +47,27 @@
         <widget class="QDoubleSpinBox" name="doubleSpinBoxDia">
          <property name="suffix">
           <string> mm</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelRotation">
+         <property name="text">
+          <string>Rotation: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonSetRotationClockwise">
+         <property name="text">
+          <string>Set Rotation Clockwise</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonSetRotationCounterClockwise">
+         <property name="text">
+          <string>Set Rotation Counter Clockwise</string>
          </property>
         </widget>
        </item>

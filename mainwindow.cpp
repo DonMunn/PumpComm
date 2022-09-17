@@ -159,6 +159,8 @@ void MainWindow::showStatusMessage(const QString &message)
 void MainWindow::displayData(QString data, int command_sent) {
     m_ui->plainTextEdit->appendPlainText(data);
     if (command_sent == PumpComm::GETDISPENSERATE) m_ui->lcdNumberDispRate->display(data+" ml/min");
+    if (command_sent == PumpComm::SETROTATIONCLOCKWISE) m_ui->labelRotation->setText("Rotation: Clockwise");
+    if (command_sent == PumpComm::SETROTATIONCOUNTERCLOCKWISE) m_ui->labelRotation->setText("Rotation: Counter Clockwise");
 }
 
 void MainWindow::on_pushButtonSetDia_clicked() {
@@ -187,6 +189,14 @@ void MainWindow::on_pushButtonDispense_clicked() {
 
 void MainWindow::on_pushButtonStartMessageTimer_clicked() {
     o_serial->startSendMessageTimer();
+}
+
+void MainWindow::on_pushButtonSetRotationClockwise_clicked() {
+    o_serial->setRotationClockwise();
+}
+
+void MainWindow::on_pushButtonSetRotationCounterClockwise_clicked() {
+    o_serial->setRotationCounterClockwise();
 }
 
 void MainWindow::on_actionAbout_triggered()
